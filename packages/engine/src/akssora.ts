@@ -1,6 +1,6 @@
 import { MediaProcessor } from "./mediaProcessor/mediaProcessor.js";
 import { MediaConfig } from "./storageClient/index.js";
-import type { VectorEmbedding } from "./embeddings/index.js";
+import type { ProcessedMedia, VectorEmbedding } from "./embeddings/index.js";
 
 export class Akssora {
   private config: MediaConfig;
@@ -11,7 +11,7 @@ export class Akssora {
     this.mediaProcessor = new MediaProcessor(this.config);
   }
 
-  async processMedia(mediaPath: string): Promise<[JSON, VectorEmbedding[]]> {
+  async processMedia(mediaPath: string): Promise<ProcessedMedia> {
     try {
       return this.mediaProcessor.processMedia(mediaPath);
     } catch {

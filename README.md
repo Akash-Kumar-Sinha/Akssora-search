@@ -9,7 +9,7 @@ The goal is to make searching through video feel like `grep` for media - find _w
 Install dependencies:
 
 ```bash
-pnpm install
+make install
 ```
 
 Build the engine:
@@ -21,7 +21,9 @@ make build
 Run the demo:
 
 ```bash
-make demo
+make run
 ```
+
+> Limited to English language.
 
 > **Status:** Early development / MVP.

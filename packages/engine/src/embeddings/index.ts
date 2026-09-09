@@ -1,3 +1,9 @@
-export { Embeddings } from "./embeddings.js";
+export { VideoEmbeddingsClient } from "./videoEmbeddings.js";
 export { ImageEmbeddingClient } from "./imageEmbedding.js";
-export type { VectorEmbedding } from "./type.js";
+export { AudioEmbeddingClient } from "./audioEmbedding.js";
+export { WhisperClient } from "./whisper.js";
+export type {
+  VectorEmbedding,
+  AudioEmbeddings,
+  ProcessedMedia,
+} from "./type.js";

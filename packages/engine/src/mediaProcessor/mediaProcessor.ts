@@ -1,20 +1,20 @@
-import { Embeddings } from "../embeddings/embeddings.js";
+import { VideoEmbeddingsClient } from "../embeddings/videoEmbeddings.js";
 import { MediaConfig, MediaStorage } from "../storageClient/index.js";
-import type { VectorEmbedding } from "../embeddings/type.js";
+import type { ProcessedMedia } from "../embeddings/type.js";
 import { MetaData } from "../metadata/index.js";
 
 export class MediaProcessor {
   private metadata: MetaData;
-  private embeddings: Embeddings;
   private mediaStorage: MediaStorage;
+  private videoEmbeddingClient: VideoEmbeddingsClient;
 
   constructor(config: MediaConfig) {
     this.metadata = new MetaData();
-    this.embeddings = new Embeddings(config);
+    this.videoEmbeddingClient = new VideoEmbeddingsClient(config);
     this.mediaStorage = new MediaStorage(config);
   }
 
-  async processMedia(mediaPath: string): Promise<[JSON, VectorEmbedding[]]> {
+  async processMedia(mediaPath: string): Promise<ProcessedMedia> {
     const [path, mediaId] = await this.mediaStorage.saveOnDisk(mediaPath);
 
     // METADATA
@@ -24,10 +24,18 @@ export class MediaProcessor {
       ...data,
     };
 
-    // EMBEDDINGS
-    const embeddings = await this.embeddings.generateEmbeddings(path, mediaId);
-    // Audo extract()
+    const videoEmbeddings =
+      await this.videoEmbeddingClient.generateVideoEmbeddings(path, mediaId);
 
-    return [metadata, embeddings];
+    const audioEmbeddings =
+      await this.videoEmbeddingClient.generateAudioEmbeddings(path, mediaId);
+
+    console.log("audioEmbeddings.transcript: ", audioEmbeddings.transcript);
+
+    return {
+      metadata,
+      videoEmbeddings,
+      audioEmbeddings,
+    };
   }
 }

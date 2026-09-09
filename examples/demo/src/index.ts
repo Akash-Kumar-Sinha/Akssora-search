@@ -4,7 +4,7 @@ import { Akssora } from "@akssora/search-engine";
 
 const akssora = new Akssora("../../storage");
 
-const metadata = await akssora.processMedia("../../videos/spiderman.mp4");
+const metadata = await akssora.processMedia("../../videos/vegeta.mp4");
 
 await writeFile(
   "temp/metadata.txt",

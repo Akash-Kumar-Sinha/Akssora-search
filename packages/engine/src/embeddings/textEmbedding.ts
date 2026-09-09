@@ -1,34 +1,37 @@
 import {
   pipeline,
-  type ImageFeatureExtractionPipeline,
+  type FeatureExtractionPipeline,
 } from "@huggingface/transformers";
 import type { MediaConfig } from "../storageClient/mediaConfig.js";
 
-export class ImageEmbeddingClient {
-  private extractor: ImageFeatureExtractionPipeline | null = null;
+export class TextEmbeddingClient {
+  private extractor: FeatureExtractionPipeline | null = null;
   private readonly config: MediaConfig;
 
   constructor(config: MediaConfig) {
     this.config = config;
   }
 
-  private async getExtractor(): Promise<ImageFeatureExtractionPipeline> {
+  private async getExtractor(): Promise<FeatureExtractionPipeline> {
     if (this.extractor) {
       return this.extractor;
     }
 
     this.extractor = await pipeline(
-      "image-feature-extraction",
-      this.config.videoModelName,
+      "feature-extraction",
+      this.config.transcriptModelName,
     );
 
     return this.extractor;
   }
 
-  async generateImageEmbedding(imagePath: string): Promise<number[]> {
+  async generateTextEmbedding(transcript: string): Promise<number[]> {
     const extractor = await this.getExtractor();
 
-    const output = await extractor(imagePath);
+    const output = await extractor(transcript, {
+      pooling: "mean",
+      normalize: true,
+    });
 
     return Array.from(output.data);
   }

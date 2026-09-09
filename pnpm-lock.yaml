@@ -15,16 +15,6 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
-  examples/basic:
-    dependencies:
-      '@akssora/search-engine':
-        specifier: workspace:*
-        version: link:../../packages/engine
-    devDependencies:
-      tsx:
-        specifier: ^4.23.13
-        version: 4.23.13
-
   examples/demo:
     dependencies:
       '@akssora/search-engine':
@@ -40,6 +30,9 @@ importers:
       '@huggingface/transformers':
         specifier: ^4.2.0
         version: 4.2.0
+      wavefile:
+        specifier: ^11.0.0
+        version: 11.0.0
 
 packages:
 
@@ -661,6 +654,11 @@ packages:
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
 
+  wavefile@11.0.0:
+    resolution: {integrity: sha512-/OBiAALgWU24IG7sC84cDO/KfFuvajWc5Uec0oV2zrpOOZZDgGdOwHwgEzOrwh8jkubBk7PtZfQBIcI1OaE5Ng==}
+    engines: {node: '>=8'}
+    hasBin: true
+
 snapshots:
 
   '@emnapi/runtime@1.11.3':
@@ -1152,3 +1150,5 @@ snapshots:
       '@typescript/typescript-win32-x64': 7.0.2
 
   undici-types@8.9.0: {}
+
+  wavefile@11.0.0: {}
