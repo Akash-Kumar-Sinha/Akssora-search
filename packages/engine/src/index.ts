@@ -1,5 +1,3 @@
-export function hello(): string {
-  return "Hello from Akssora Search Engine!";
-}
-
-console.log(hello());
+export { Akssora } from "./akssora.js";
+export { MediaConfig } from "./storageClient/mediaConfig.js";
+export type { Media } from "./type.js";
