@@ -1,7 +1,13 @@
-import { readFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 
 import { Akssora } from "@akssora/search-engine";
 
 const akssora = new Akssora("../../storage");
 
-await akssora.pushMedia("../../videos/vegeta.mp4");
+const metadata = await akssora.processMedia("../../videos/spiderman.mp4");
+
+await writeFile(
+  "temp/metadata.txt",
+  JSON.stringify(metadata, null, 2),
+  "utf-8",
+);

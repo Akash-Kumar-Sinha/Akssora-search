@@ -1,15 +1,18 @@
 {
- "name": "@akssora/search-engine",
+  "name": "@akssora/search-engine",
   "version": "1.0.0",
   "type": "module",
   "description": "",
-   "main": "./dist/index.js",
-   "types": "./dist/index.d.ts",
-   "scripts": {
-       "build": "tsc"
-     },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
   "keywords": [],
   "author": "Akash Kumar Sinha",
   "license": "ISC",
-  "packageManager": "pnpm@10.29.1"
+  "packageManager": "pnpm@10.29.1",
+  "dependencies": {
+    "@huggingface/transformers": "^4.2.0"
+  }
 }

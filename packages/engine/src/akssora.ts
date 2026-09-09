@@ -1,18 +1,21 @@
+import { MediaProcessor } from "./mediaProcessor/mediaProcessor.js";
 import { MediaConfig } from "./storageClient/index.js";
-import { MediaStorage } from "./storageClient/index.js";
+import type { VectorEmbedding } from "./embeddings/index.js";
 
 export class Akssora {
-  private mediaConfig: MediaConfig;
-  private mediaStorage: MediaStorage;
+  private config: MediaConfig;
+  private mediaProcessor: MediaProcessor;
 
   constructor(mediaStoragePath: string) {
-    this.mediaConfig = new MediaConfig(mediaStoragePath);
-    this.mediaStorage = new MediaStorage();
+    this.config = new MediaConfig(mediaStoragePath);
+    this.mediaProcessor = new MediaProcessor(this.config);
   }
 
-  async pushMedia(mediaPath: string): Promise<void> {
+  async processMedia(mediaPath: string): Promise<[JSON, VectorEmbedding[]]> {
     try {
-      this.mediaStorage.saveOnDisk(mediaPath, this.mediaConfig);
-    } catch {}
+      return this.mediaProcessor.processMedia(mediaPath);
+    } catch {
+      return Promise.reject(new Error("Failed to push media"));
+    }
   }
 }

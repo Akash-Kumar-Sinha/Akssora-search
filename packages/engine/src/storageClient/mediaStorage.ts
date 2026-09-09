@@ -1,21 +1,25 @@
-import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { promisify } from "node:util";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { MP4, type Media } from "../type.js";
 import type { MediaConfig } from "./mediaConfig.js";
+import { execFileAsync } from "../util/execFileAsync.js";
 
 interface DiskStorage {
-  saveOnDisk(mediaPath: string, mediaConfig: MediaConfig): Promise<boolean>;
-}
-const execFileAsync = promisify(execFile);
-
-export class MediaStorage implements DiskStorage {
-  async saveOnDisk(
+  saveOnDisk(
     mediaPath: string,
     mediaConfig: MediaConfig,
-  ): Promise<boolean> {
+  ): Promise<[string, string]>;
+}
+
+export class MediaStorage implements DiskStorage {
+  public readonly config: MediaConfig;
+
+  constructor(config: MediaConfig) {
+    this.config = config;
+  }
+
+  async saveOnDisk(mediaPath: string): Promise<[string, string]> {
     try {
       const tempPath = `${mediaPath}.faststart.mp4`;
       await execFileAsync("ffmpeg", [
@@ -40,7 +44,7 @@ export class MediaStorage implements DiskStorage {
         .update(mediaId)
         .digest("hex")}-${Date.now()}.mp4`;
 
-      const directory = join(mediaConfig.storagePath, hash);
+      const directory = join(this.config.storagePath, hash);
       const filePath = join(directory, hash);
 
       await mkdir(directory, {
@@ -51,9 +55,9 @@ export class MediaStorage implements DiskStorage {
 
       await execFileAsync("rm", ["-f", tempPath]);
 
-      return true;
+      return [filePath, hash.split(".", 1)[0] as string];
     } catch {
-      return false;
+      return Promise.reject(new Error("Failed to save media on disk"));
     }
   }
 }
