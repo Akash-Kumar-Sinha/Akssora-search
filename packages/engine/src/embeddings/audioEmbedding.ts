@@ -65,6 +65,7 @@ export class AudioEmbeddingClient {
     mediaPath: string,
     metaID: string,
   ): Promise<AudioEmbeddings> {
+    const start = performance.now();
     const audioPath = await this.audio.extractAudio(mediaPath, metaID);
 
     const transcript = await this.whisperClient.transcribe(audioPath);
@@ -75,6 +76,15 @@ export class AudioEmbeddingClient {
       this.generateEmbedding(audioPath),
     ]);
 
+    const totalTime = performance.now() - start;
+
+    const totalSeconds = totalTime / 1000;
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    console.log(
+      `Audio Processing Timeline: ${minutes} minutes ${seconds.toFixed(1)} seconds`,
+    );
     return {
       text: {
         vector: textEmbedding,

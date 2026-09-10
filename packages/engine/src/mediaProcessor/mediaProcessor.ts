@@ -5,19 +5,18 @@ import { VideoEmbeddingsClient } from "../embeddings/videoEmbeddings.js";
 import { MediaConfig, MediaStorage } from "../storageClient/index.js";
 import type { ProcessedMedia } from "../embeddings/type.js";
 import { MetaData } from "../metadata/index.js";
-import { AudioEmbeddingClient } from "../embeddings/audioEmbedding.js";
+import { AudioEmbeddingClient } from "../embeddings/index.js";
+import { WorkerManager } from "../worker/workerManager.js";
 
 export class MediaProcessor {
-  private metadata: MetaData;
-  private mediaStorage: MediaStorage;
-  private videoEmbeddingClient: VideoEmbeddingsClient;
-  private audioEmbeddingClient: AudioEmbeddingClient;
+  private readonly config: MediaConfig;
+  private readonly mediaStorage: MediaStorage;
+  private readonly workerManager: WorkerManager;
 
   constructor(config: MediaConfig) {
-    this.metadata = new MetaData();
-    this.videoEmbeddingClient = new VideoEmbeddingsClient(config);
-    this.audioEmbeddingClient = new AudioEmbeddingClient(config);
+    this.config = config;
     this.mediaStorage = new MediaStorage(config);
+    this.workerManager = new WorkerManager();
   }
 
   async processMedia(mediaPath: string): Promise<ProcessedMedia> {
@@ -25,34 +24,61 @@ export class MediaProcessor {
 
     const start = performance.now();
 
-    // CONCURRENTLY
-    const [data, videoEmbeddings, audioEmbeddings] = await Promise.all([
-      this.metadata.extractMetadata(path),
+    try {
+      const [data, videoEmbeddings, audioEmbeddings] = await Promise.all([
+        this.workerManager.run<
+          Awaited<ReturnType<MetaData["extractMetadata"]>>
+        >({
+          type: "metadata",
+          path,
+          mediaId,
+          config: this.config,
+        }),
 
-      this.videoEmbeddingClient.generateVideoEmbeddings(path, mediaId),
+        this.workerManager.run<
+          Awaited<ReturnType<VideoEmbeddingsClient["generateVideoEmbeddings"]>>
+        >({
+          type: "video",
+          path,
+          mediaId,
+          config: this.config,
+        }),
 
-      this.audioEmbeddingClient.generateAudioEmbeddings(path, mediaId),
-    ]);
+        this.workerManager.run<
+          Awaited<ReturnType<AudioEmbeddingClient["generateAudioEmbeddings"]>>
+        >({
+          type: "audio",
+          path,
+          mediaId,
+          config: this.config,
+        }),
+      ]);
 
-    const totalTime = performance.now() - start;
-    const totalMinutes = totalTime / 60_000;
+      const totalTime = performance.now() - start;
 
-    console.log(`
-      Media Processing Timeline: ${totalMinutes.toFixed(2)} minutes
-    `);
+      const totalSeconds = totalTime / 1000;
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
 
-    await rm(join("temp", mediaId), {
-      recursive: true,
-      force: true,
-    });
-    const metadata = {
-      metaId: mediaId,
-      ...data,
-    };
-    return {
-      metadata,
-      videoEmbeddings,
-      audioEmbeddings,
-    };
+      console.log(
+        `Media Processing Timeline: ${minutes} minutes ${seconds.toFixed(1)} seconds`,
+      );
+
+      const metadata = {
+        metaId: mediaId,
+        ...data,
+      };
+
+      return {
+        metadata,
+        videoEmbeddings,
+        audioEmbeddings,
+      };
+    } finally {
+      await rm(join("temp", mediaId), {
+        recursive: true,
+        force: true,
+      });
+    }
   }
 }

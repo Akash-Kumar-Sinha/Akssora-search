@@ -19,6 +19,7 @@ export class VideoEmbeddingsClient {
     mediaPath: string,
     metaID: string,
   ): Promise<VectorEmbedding[]> {
+    const start = performance.now();
     try {
       const frames = await this.frames.extractFrames(mediaPath, metaID);
 
@@ -46,6 +47,15 @@ export class VideoEmbeddingsClient {
         embeddings.push(...batchEmbeddings);
       }
 
+      const totalTime = performance.now() - start;
+
+      const totalSeconds = totalTime / 1000;
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+
+      console.log(
+        `Video Processing Timeline: ${minutes} minutes ${seconds.toFixed(1)} seconds`,
+      );
       return embeddings;
     } catch (error) {
       console.error("Failed to generate embeddings:", error);
