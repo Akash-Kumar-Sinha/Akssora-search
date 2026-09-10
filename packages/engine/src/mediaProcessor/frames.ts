@@ -1,10 +1,10 @@
 import { mkdir, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { execFileAsync } from "../util/execFileAsync.js";
-import type { FrameType } from "./index.js";
+import type { Frame } from "./types.js";
 
 export class Frames {
-  async extractFrames(mediaPath: string, metaID: string): Promise<FrameType[]> {
+  async extractFrames(mediaPath: string, metaID: string): Promise<Frame[]> {
     const directory = join("temp", metaID, "frames");
 
     await mkdir(directory, { recursive: true });
@@ -16,7 +16,7 @@ export class Frames {
       "-i",
       mediaPath,
       "-vf",
-      "fps=5",
+      "fps=2",
       "-q:v",
       "2",
       "-y",

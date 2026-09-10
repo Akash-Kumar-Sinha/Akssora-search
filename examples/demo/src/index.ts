@@ -7,7 +7,7 @@ const akssora = new Akssora("../../storage");
 const metadata = await akssora.processMedia("../../videos/vegeta.mp4");
 
 await writeFile(
-  "temp/metadata.txt",
+  "temp/metadata.json",
   JSON.stringify(metadata, null, 2),
   "utf-8",
 );

@@ -18,4 +18,20 @@ export class Akssora {
       return Promise.reject(new Error("Failed to push media"));
     }
   }
+
+  setVideoModelName(modelName: string): void {
+    this.config.setVideoModelName(modelName);
+  }
+
+  setAudioModelName(modelName: string): void {
+    this.config.setAudioModelName(modelName);
+  }
+
+  setWhisperModelName(modelName: string): void {
+    this.config.setWhisperModelName(modelName);
+  }
+
+  setTranscriptModelName(modelName: string): void {
+    this.config.setTranscriptModelName(modelName);
+  }
 }

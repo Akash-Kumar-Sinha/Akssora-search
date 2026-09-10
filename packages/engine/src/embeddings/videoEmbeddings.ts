@@ -1,30 +1,18 @@
-import { rm } from "node:fs/promises";
-import { join } from "node:path";
-
-import type { AudioEmbeddings, VectorEmbedding } from "./type.js";
+import type { VectorEmbedding } from "./type.js";
 import { ImageEmbeddingClient } from "./imageEmbedding.js";
 import type { MediaConfig } from "../storageClient/index.js";
-import { Audio, Frames } from "../mediaProcessor/index.js";
-import { AudioEmbeddingClient } from "./index.js";
-import { WhisperClient } from "./index.js";
-import { TextEmbeddingClient } from "./textEmbedding.js";
+import { Frames } from "../mediaProcessor/index.js";
+
+const BATCH_SIZE = 8;
 
 export class VideoEmbeddingsClient {
   private readonly frames: Frames;
-  private readonly audio: Audio;
 
   private readonly imageEmbeddingClient: ImageEmbeddingClient;
-  private readonly audioEmbeddingClient: AudioEmbeddingClient;
-  private readonly whisperClient: WhisperClient;
-  private readonly textEmbeddingClient: TextEmbeddingClient;
 
   constructor(config: MediaConfig) {
     this.frames = new Frames();
-    this.audio = new Audio();
     this.imageEmbeddingClient = new ImageEmbeddingClient(config);
-    this.audioEmbeddingClient = new AudioEmbeddingClient(config);
-    this.whisperClient = new WhisperClient(config);
-    this.textEmbeddingClient = new TextEmbeddingClient(config);
   }
 
   async generateVideoEmbeddings(
@@ -36,56 +24,32 @@ export class VideoEmbeddingsClient {
 
       const embeddings: VectorEmbedding[] = [];
 
-      for (const frame of frames) {
-        const vector = await this.imageEmbeddingClient.generateImageEmbedding(
-          frame.path,
+      // CONCURRENTLY process frames in batches to avoid overwhelming the embedding service
+      // BATCH_SIZE is set to 8, but you can adjust it based on your system's capabilities and the embedding service's rate limits.
+      for (let i = 0; i < frames.length; i += BATCH_SIZE) {
+        const batch = frames.slice(i, i + BATCH_SIZE);
+
+        const batchEmbeddings = await Promise.all(
+          batch.map(async (frame) => {
+            const vector =
+              await this.imageEmbeddingClient.generateImageEmbedding(
+                frame.path,
+              );
+
+            return {
+              vector,
+              timestamp: frame.timestamp,
+            };
+          }),
         );
 
-        embeddings.push({
-          vector,
-          timestamp: frame.timestamp,
-        });
+        embeddings.push(...batchEmbeddings);
       }
-      await rm(join("temp", metaID), {
-        recursive: true,
-        force: true,
-      });
+
       return embeddings;
     } catch (error) {
       console.error("Failed to generate embeddings:", error);
       return [];
     }
-  }
-
-  async generateAudioEmbeddings(
-    mediaPath: string,
-    metaID: string,
-  ): Promise<AudioEmbeddings> {
-    const audioPath = await this.audio.extractAudio(mediaPath, metaID);
-
-    const transcript = await this.whisperClient.transcribe(audioPath);
-
-    const textEmbedding =
-      await this.textEmbeddingClient.generateTextEmbedding(transcript);
-
-    const audioEmbeddings =
-      await this.audioEmbeddingClient.generateAudioEmbedding(audioPath);
-
-    await rm(join("temp", metaID), {
-      recursive: true,
-      force: true,
-    });
-
-    return {
-      text: {
-        vector: textEmbedding,
-        timestamp: 0,
-      },
-      audio: {
-        vector: audioEmbeddings,
-        timestamp: 0,
-      },
-      transcript,
-    };
   }
 }
