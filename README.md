@@ -37,6 +37,10 @@ make run
 | 83M        | 23:12             | 5 minutes 49.8 seconds |
 | 19M        | 3:05              | 1 minute 3.0 seconds   |
 
-> Limited to English language.
+### Limitations
+
+- Limited to English language.
+- Video Size < 100MB is recommended for testing.
+- Longer duration videos are not supported yet.
 
 > **Status:** Early development / MVP.
